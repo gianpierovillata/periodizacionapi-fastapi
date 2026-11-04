@@ -19,10 +19,11 @@ def crear_atleta(datos: AtletaCreate, db: DbSession):
 def listar_atletas(
     db: DbSession,
     nivel: NivelAtleta | None = None,
+    deporte_id: int | None = None,
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
-    return servicio.listar_atletas(db, nivel, skip, limit)
+    return servicio.listar_atletas(db, nivel, deporte_id, skip, limit)
 
 
 @router.get("/{atleta_id}", response_model=AtletaRead)

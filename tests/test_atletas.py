@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 
 from fastapi.testclient import TestClient
@@ -16,7 +17,8 @@ DATOS = {
 }
 
 
-def crear_usuario(client: TestClient, rol: str = "atleta", email: str = "ana@example.com") -> int:
+def crear_usuario(client: TestClient, rol: str = "atleta", email: str | None = None) -> int:
+    email = email or f"{uuid.uuid4().hex}@example.com"
     datos = {"nombre": "Ana", "apellido": "Pérez", "email": email, "rol": rol}
     respuesta = client.post(USUARIOS, json=datos)
     assert respuesta.status_code == 201, respuesta.text
@@ -203,3 +205,77 @@ def test_eliminar_usuario_elimina_su_perfil_de_atleta(client: TestClient):
 
     assert client.delete(f"{USUARIOS}/{usuario_id}").status_code == 204
     assert client.get(f"{BASE}/{atleta['id']}").status_code == 404
+
+
+# Entrenador y deporte
+
+def crear_entrenador_y_deporte(client: TestClient) -> tuple[int, int]:
+    deporte = client.post("/api/v1/deportes", json={"nombre": "Natación", "tipo": "resistencia"}).json()
+    usuario = client.post(
+        USUARIOS,
+        json={"nombre": "Luis", "apellido": "Mora", "email": "luis@example.com", "rol": "entrenador"},
+    ).json()
+    entrenador = client.post(
+        "/api/v1/entrenadores",
+        json={
+            "usuario_id": usuario["id"],
+            "nombre": "Luis",
+            "apellido": "Mora",
+            "nivel": "avanzado",
+            "deporte_id": deporte["id"],
+        },
+    ).json()
+    return entrenador["id"], deporte["id"]
+
+
+def test_crear_con_entrenador_y_deporte(client: TestClient):
+    entrenador_id, deporte_id = crear_entrenador_y_deporte(client)
+
+    atleta = crear_atleta(client, crear_usuario(client), entrenador_id=entrenador_id, deporte_id=deporte_id)
+
+    assert atleta["entrenador_id"] == entrenador_id
+    assert atleta["deporte_id"] == deporte_id
+
+
+def test_crear_con_entrenador_inexistente_devuelve_404(client: TestClient):
+    respuesta = client.post(BASE, json={**DATOS, "usuario_id": crear_usuario(client), "entrenador_id": 999})
+
+    assert respuesta.status_code == 404
+    assert respuesta.json() == {"detail": "Entrenador no encontrado"}
+
+
+def test_crear_con_deporte_inexistente_devuelve_404(client: TestClient):
+    respuesta = client.post(BASE, json={**DATOS, "usuario_id": crear_usuario(client), "deporte_id": 999})
+
+    assert respuesta.status_code == 404
+    assert respuesta.json() == {"detail": "Deporte no encontrado"}
+
+
+def test_patch_asigna_entrenador(client: TestClient):
+    entrenador_id, _ = crear_entrenador_y_deporte(client)
+    atleta = crear_atleta(client, crear_usuario(client))
+
+    respuesta = client.patch(f"{BASE}/{atleta['id']}", json={"entrenador_id": entrenador_id})
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["entrenador_id"] == entrenador_id
+
+
+def test_patch_quita_entrenador_con_null(client: TestClient):
+    entrenador_id, _ = crear_entrenador_y_deporte(client)
+    atleta = crear_atleta(client, crear_usuario(client), entrenador_id=entrenador_id)
+
+    respuesta = client.patch(f"{BASE}/{atleta['id']}", json={"entrenador_id": None})
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["entrenador_id"] is None
+
+
+def test_listar_filtra_por_deporte(client: TestClient):
+    _, deporte_id = crear_entrenador_y_deporte(client)
+    con_deporte = crear_atleta(client, crear_usuario(client), deporte_id=deporte_id)
+    crear_atleta(client, crear_usuario(client, email="sin@example.com"))
+
+    respuesta = client.get(BASE, params={"deporte_id": deporte_id})
+
+    assert [a["id"] for a in respuesta.json()] == [con_deporte["id"]]

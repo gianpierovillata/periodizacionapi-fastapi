@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from app.models.atleta import Atleta, NivelAtleta
 from app.models.usuario import RolUsuario
 from app.schemas.atleta import AtletaCreate, AtletaUpdate
+from app.services.deporte import obtener_deporte
+from app.services.entrenador import obtener_entrenador
 from app.services.usuario import obtener_usuario
 
 
@@ -17,11 +19,13 @@ def obtener_atleta(db: Session, atleta_id: int) -> Atleta:
 
 
 def listar_atletas(
-    db: Session, nivel: NivelAtleta | None, skip: int, limit: int
+    db: Session, nivel: NivelAtleta | None, deporte_id: int | None, skip: int, limit: int
 ) -> list[Atleta]:
     consulta = select(Atleta).order_by(Atleta.id).offset(skip).limit(limit)
     if nivel is not None:
         consulta = consulta.where(Atleta.nivel == nivel)
+    if deporte_id is not None:
+        consulta = consulta.where(Atleta.deporte_id == deporte_id)
     return list(db.scalars(consulta))
 
 
@@ -32,6 +36,10 @@ def crear_atleta(db: Session, datos: AtletaCreate) -> Atleta:
             status_code=422,
             detail="El usuario debe tener rol atleta",
         )
+    if datos.entrenador_id is not None:
+        obtener_entrenador(db, datos.entrenador_id)
+    if datos.deporte_id is not None:
+        obtener_deporte(db, datos.deporte_id)
     atleta = Atleta(**datos.model_dump())
     db.add(atleta)
     try:
@@ -48,7 +56,12 @@ def crear_atleta(db: Session, datos: AtletaCreate) -> Atleta:
 
 def actualizar_atleta(db: Session, atleta_id: int, datos: AtletaUpdate) -> Atleta:
     atleta = obtener_atleta(db, atleta_id)
-    for campo, valor in datos.model_dump(exclude_unset=True).items():
+    cambios = datos.model_dump(exclude_unset=True)
+    if cambios.get("entrenador_id") is not None:
+        obtener_entrenador(db, cambios["entrenador_id"])
+    if cambios.get("deporte_id") is not None:
+        obtener_deporte(db, cambios["deporte_id"])
+    for campo, valor in cambios.items():
         setattr(atleta, campo, valor)
     db.commit()
     db.refresh(atleta)

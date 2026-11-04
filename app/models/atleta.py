@@ -28,6 +28,10 @@ class Atleta(Base):
         Enum(NivelAtleta, name="nivel_atleta", values_callable=lambda e: [m.value for m in e])
     )
     categoria: Mapped[str] = mapped_column(String(50))
+    entrenador_id: Mapped[int | None] = mapped_column(
+        ForeignKey("entrenadores.id", ondelete="RESTRICT")
+    )
+    deporte_id: Mapped[int | None] = mapped_column(ForeignKey("deportes.id", ondelete="RESTRICT"))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()

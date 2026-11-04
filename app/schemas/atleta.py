@@ -25,6 +25,8 @@ class AtletaCreate(BaseModel):
     direccion: str | None = Field(default=None, max_length=255)
     nivel: NivelAtleta
     categoria: str = Field(min_length=1, max_length=50)
+    entrenador_id: int | None = Field(default=None, gt=0)
+    deporte_id: int | None = Field(default=None, gt=0)
 
     @field_validator("fecha_nacimiento")
     @classmethod
@@ -39,6 +41,9 @@ class AtletaUpdate(BaseModel):
     direccion: str | None = Field(default=None, max_length=255)
     nivel: NivelAtleta | None = None
     categoria: str | None = Field(default=None, min_length=1, max_length=50)
+    # Nulo es valido en estos dos: quita el entrenador o el deporte.
+    entrenador_id: int | None = Field(default=None, gt=0)
+    deporte_id: int | None = Field(default=None, gt=0)
 
     @field_validator("nombre", "apellido", "fecha_nacimiento", "nivel", "categoria", mode="before")
     @classmethod
@@ -64,6 +69,8 @@ class AtletaRead(BaseModel):
     direccion: str | None
     nivel: NivelAtleta
     categoria: str
+    entrenador_id: int | None
+    deporte_id: int | None
     created_at: datetime
     updated_at: datetime
 

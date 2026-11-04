@@ -189,3 +189,66 @@ def test_patch_con_nombre_nulo_devuelve_422(client: TestClient):
     respuesta = client.patch(f"{BASE}/{ana['id']}", json={"nombre": None})
 
     assert respuesta.status_code == 422
+
+
+def test_patch_rol_de_usuario_con_perfil_devuelve_409(client: TestClient):
+    usuario = client.post(
+        BASE,
+        json={"nombre": "Ana", "apellido": "Pérez", "email": "ana@example.com", "rol": "atleta"},
+    ).json()
+    client.post(
+        "/api/v1/atletas",
+        json={
+            "usuario_id": usuario["id"],
+            "nombre": "Ana",
+            "apellido": "Pérez",
+            "fecha_nacimiento": "2000-05-10",
+            "nivel": "intermedio",
+            "categoria": "Junior",
+        },
+    )
+
+    respuesta = client.patch(f"{BASE}/{usuario['id']}", json={"rol": "entrenador"})
+
+    assert respuesta.status_code == 409
+
+
+def test_patch_rol_de_usuario_sin_perfil_funciona(client: TestClient):
+    usuario = crear(client)
+
+    respuesta = client.patch(f"{BASE}/{usuario['id']}", json={"rol": "entrenador"})
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["rol"] == "entrenador"
+
+
+def test_eliminar_usuario_entrenador_con_atletas_devuelve_409(client: TestClient):
+    deporte = client.post("/api/v1/deportes", json={"nombre": "Natación", "tipo": "resistencia"}).json()
+    usuario_entrenador = crear(client, {**LUIS})
+    entrenador = client.post(
+        "/api/v1/entrenadores",
+        json={
+            "usuario_id": usuario_entrenador["id"],
+            "nombre": "Luis",
+            "apellido": "Mora",
+            "nivel": "avanzado",
+            "deporte_id": deporte["id"],
+        },
+    ).json()
+    usuario_atleta = crear(client, {**ANA, "email": "atleta@example.com"})
+    client.post(
+        "/api/v1/atletas",
+        json={
+            "usuario_id": usuario_atleta["id"],
+            "nombre": "Ana",
+            "apellido": "Pérez",
+            "fecha_nacimiento": "2000-05-10",
+            "nivel": "intermedio",
+            "categoria": "Junior",
+            "entrenador_id": entrenador["id"],
+        },
+    )
+
+    respuesta = client.delete(f"{BASE}/{usuario_entrenador['id']}")
+
+    assert respuesta.status_code == 409
