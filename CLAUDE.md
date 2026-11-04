@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Comandos
 
-Todo corre en Docker Compose; no hay entorno virtual local ni comandos de lint o tests configurados todavía.
+Todo corre en Docker Compose; no hay entorno virtual local ni comandos de lint configurados.
 
 ```bash
 cp .env.example .env                  # solo si no existe .env; define credenciales y puertos
@@ -16,6 +16,13 @@ docker compose down -v                # parar y BORRAR el volumen de MySQL
 ```
 
 Tras cambiar `requirements.txt` hay que reconstruir la imagen con `docker compose up -d --build`. Cambios en `app/` se recargan solos (`--reload`).
+
+Tests (pytest, sobre SQLite en memoria; ver `tests/conftest.py`):
+
+```bash
+docker compose run --build --rm test                                  # toda la suite
+docker compose run --build --rm test pytest tests/test_usuarios.py -k patch   # subconjunto
+```
 
 ## Arquitectura
 

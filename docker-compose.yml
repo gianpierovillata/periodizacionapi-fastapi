@@ -56,5 +56,11 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  test:
+    build:
+      context: .
+      target: test
+    profiles: ["test"]
+
 volumes:
   mysql_data:
