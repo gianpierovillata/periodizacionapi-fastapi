@@ -181,3 +181,11 @@ def test_eliminar_usuario_inexistente_devuelve_404(client: TestClient):
     respuesta = client.delete(f"{BASE}/999")
 
     assert respuesta.status_code == 404
+
+
+def test_patch_con_nombre_nulo_devuelve_422(client: TestClient):
+    ana = crear(client)
+
+    respuesta = client.patch(f"{BASE}/{ana['id']}", json={"nombre": None})
+
+    assert respuesta.status_code == 422

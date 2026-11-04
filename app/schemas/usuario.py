@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models.usuario import RolUsuario
 
@@ -17,6 +17,13 @@ class UsuarioUpdate(BaseModel):
     apellido: str | None = Field(default=None, min_length=1, max_length=100)
     email: EmailStr | None = Field(default=None, max_length=255)
     rol: RolUsuario | None = None
+
+    @field_validator("nombre", "apellido", "email", "rol", mode="before")
+    @classmethod
+    def no_nulo(cls, valor):
+        if valor is None:
+            raise ValueError("no puede ser nulo")
+        return valor
 
 
 class UsuarioRead(BaseModel):
