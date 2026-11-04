@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.atleta import Atleta, NivelAtleta
+from app.models.plan import PlanEntrenamiento
 from app.models.usuario import RolUsuario
 from app.schemas.atleta import AtletaCreate, AtletaUpdate
 from app.services.deporte import obtener_deporte
@@ -70,5 +71,14 @@ def actualizar_atleta(db: Session, atleta_id: int, datos: AtletaUpdate) -> Atlet
 
 def eliminar_atleta(db: Session, atleta_id: int) -> None:
     atleta = obtener_atleta(db, atleta_id)
+    tiene_planes = (
+        db.scalar(select(PlanEntrenamiento.id).where(PlanEntrenamiento.atleta_id == atleta_id).limit(1))
+        is not None
+    )
+    if tiene_planes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El atleta tiene planes de entrenamiento",
+        )
     db.delete(atleta)
     db.commit()

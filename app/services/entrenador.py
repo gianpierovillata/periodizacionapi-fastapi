@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.atleta import Atleta
 from app.models.entrenador import Entrenador
+from app.models.plan import PlanEntrenamiento
 from app.models.usuario import RolUsuario
 from app.schemas.entrenador import EntrenadorCreate, EntrenadorUpdate
 from app.services.deporte import obtener_deporte
@@ -68,6 +69,17 @@ def eliminar_entrenador(db: Session, entrenador_id: int) -> None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="El entrenador tiene atletas asignados",
+        )
+    tiene_planes = (
+        db.scalar(
+            select(PlanEntrenamiento.id).where(PlanEntrenamiento.entrenador_id == entrenador_id).limit(1)
+        )
+        is not None
+    )
+    if tiene_planes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El entrenador tiene planes de entrenamiento",
         )
     db.delete(obtener_entrenador(db, entrenador_id))
     db.commit()

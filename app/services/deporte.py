@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.atleta import Atleta
 from app.models.deporte import Deporte
 from app.models.entrenador import Entrenador
+from app.models.plan import PlanEntrenamiento
 from app.schemas.deporte import DeporteCreate, DeporteUpdate
 
 NOMBRE_DUPLICADO = "Ya existe un deporte con ese nombre"
@@ -56,11 +57,13 @@ def eliminar_deporte(db: Session, deporte_id: int) -> None:
         db.scalar(select(Atleta.id).where(Atleta.deporte_id == deporte_id).limit(1)) is not None
         or db.scalar(select(Entrenador.id).where(Entrenador.deporte_id == deporte_id).limit(1))
         is not None
+        or db.scalar(select(PlanEntrenamiento.id).where(PlanEntrenamiento.deporte_id == deporte_id).limit(1))
+        is not None
     )
     if en_uso:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="El deporte tiene atletas o entrenadores asociados",
+            detail="El deporte tiene atletas, entrenadores o planes asociados",
         )
     db.delete(deporte)
     db.commit()
