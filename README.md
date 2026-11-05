@@ -45,6 +45,7 @@ tests/                 # Suite de pytest (SQLite en memoria)
 - **Entrenadores** (`/api/v1/entrenadores`): perfil de un usuario con rol `entrenador`, con nombre, apellido, nivel y deporte. Un entrenador tiene muchos atletas, y `GET /entrenadores/{id}/atletas` los lista.
 - **Deportes** (`/api/v1/deportes`): nombre (unico), descripcion, tipo (libre; sugeridos: resistencia, fuerza, velocidad, tecnica, flexibilidad, otro) e imagen (URL).
 
+- **Competencias** (`/api/v1/competencias`): competencias de un plan, con nombre, fecha y lugar. Se consultan con `?plan_id=`. Al borrar un plan se borran sus competencias.
 - **Planes de entrenamiento** (`/api/v1/planes`): plan de un atleta, creado por su entrenador. Incluye codigo (unico), nombre, descripcion, ano, fecha de inicio y final, objetivos, deporte y una lista de competencias (nombre, fecha, lugar). Un atleta puede tener varios planes, pero solo uno activo. Activar un plan (`POST /planes/{id}/activar`) desactiva el anterior. Tambien puedes consultar `GET /atletas/{id}/planes` y `GET /atletas/{id}/plan-activo`.
 
 No se puede borrar un deporte con atletas, entrenadores o planes asociados, ni un entrenador o un atleta con planes o atletas asignados. Todos devuelven 409.
