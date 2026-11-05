@@ -26,7 +26,7 @@ docker compose run --build --rm test pytest tests/test_usuarios.py -k patch   # 
 
 ## Arquitectura
 
-API FastAPI sobre MySQL 8.4 con SQLAlchemy 2.0 (driver `pymysql`). Servicios en `docker-compose.yml`: `api`, `db` y `phpmyadmin` (runtime), y `test` (perfil `test`, solo para pytest).
+API FastAPI sobre MySQL 8.4 con SQLAlchemy 2.0 (driver `pymysql`). Servicios en `docker-compose.yml`: `api`, `db` y `phpmyadmin` (runtime), y `test` (perfil `test`, solo para pytest). El frontend `web` no está aquí: se incluye con `include: ../periodizacionapp-react/docker-compose.yml`, así que un solo `docker compose up -d` levanta todo.
 
 - **Configuración:** `app/core/config.py` lee las variables de entorno con `pydantic-settings` (desde `.env` en local, o desde el entorno del contenedor). `get_settings()` está cacheado con `lru_cache`. El host de la base de datos es `db` (nombre del servicio Compose), no `localhost`.
 - **Conexión a la base:** `app/db/session.py` crea un único `engine` al importarse y expone `get_db()`, una dependencia de FastAPI que entrega una `Session` por petición. `app/db/base.py` define `Base`, la clase declarativa de la que heredarán los modelos.

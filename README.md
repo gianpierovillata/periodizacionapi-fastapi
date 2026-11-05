@@ -1,6 +1,6 @@
 # Periodizacion API
 
-API con FastAPI, SQLAlchemy y MySQL, ejecutada con Docker Compose.
+API con FastAPI, SQLAlchemy y MySQL, ejecutada con Docker Compose. El frontend React vive en `../periodizacionapp-react` y se levanta desde aqui con `include` en `docker-compose.yml`.
 
 ## Inicio rapido
 
@@ -15,6 +15,7 @@ docker compose up -d --build
 | Health     | http://localhost:8000/api/v1/health |
 | phpMyAdmin | http://localhost:8080               |
 | MySQL      | localhost:3306                      |
+| Frontend   | http://localhost:5173               |
 
 Entra a phpMyAdmin con `MYSQL_USER` / `MYSQL_PASSWORD`, o con `root` / `MYSQL_ROOT_PASSWORD`.
 

@@ -1,3 +1,8 @@
+# Frontend en su propio repositorio. Con include, un solo "docker compose up"
+# levanta la API, la base, phpMyAdmin y la web.
+include:
+  - ../periodizacionapp-react/docker-compose.yml
+
 services:
   api:
     build: .
