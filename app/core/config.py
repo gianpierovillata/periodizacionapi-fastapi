@@ -9,6 +9,8 @@ class Settings(BaseSettings):
 
     app_name: str = "Periodizacion API"
     api_v1_prefix: str = "/api/v1"
+    # Orígenes del frontend que pueden llamar a la API desde el navegador.
+    cors_origins: list[str] = ["http://localhost:5173"]
 
     mysql_host: str = "db"
     mysql_port: int = 3306

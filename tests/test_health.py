@@ -25,3 +25,27 @@ def test_health_503_si_la_base_no_responde(client: TestClient):
 
     assert respuesta.status_code == 503
     assert respuesta.json() == {"detail": "Base de datos no disponible"}
+
+
+def test_cors_permite_el_origen_del_frontend(client: TestClient):
+    respuesta = client.options(
+        "/api/v1/atletas",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert respuesta.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_cors_no_permite_otro_origen(client: TestClient):
+    respuesta = client.options(
+        "/api/v1/atletas",
+        headers={
+            "Origin": "http://sitio-ajeno.example",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert "access-control-allow-origin" not in respuesta.headers
